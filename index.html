@@ -768,21 +768,35 @@
         (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
       ];
 
+      const fetchWithTimeout = async (url, ms = 10000) => {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), ms);
+        try {
+          const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
+          clearTimeout(id);
+          return res;
+        } catch (e) {
+          clearTimeout(id);
+          throw e;
+        }
+      };
+
       const fetchGN = async (query, proxyIndex = 0) => {
         const q = encodeURIComponent(query);
         const targetUrl = `https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant&sortBy=publishedAt`;
         const url = proxyIndex >= 0 ? CORS_PROXIES[proxyIndex](targetUrl) : targetUrl;
         try {
-          const res = await fetch(url, { cache: "no-store" });
+          const res = await fetchWithTimeout(url, 12000);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const text = await res.text();
           if (!text || text.length < 100) throw new Error(`空白回應 (${text?.length ?? 0} bytes)`);
           const items = parseGoogleRSS(text);
-          console.log(`[${query}] fetched ${items.length} items`);
+          console.log(`[${query}] proxy ${proxyIndex} → ${items.length} items`);
           return items;
         } catch (e) {
-          console.warn(`[${query}] proxy ${proxyIndex} failed:`, e?.message);
-          if (proxyIndex < CORS_PROXIES.length - 1) {
+          const isAbort = e?.name === "AbortError";
+          console.warn(`[${query}] proxy ${proxyIndex} failed: ${isAbort ? "TIMEOUT" : e?.message}`);
+          if (!isAbort && proxyIndex < CORS_PROXIES.length - 1) {
             return fetchGN(query, proxyIndex + 1);
           }
           throw e;
@@ -856,9 +870,15 @@
 
       const loadNews = async () => {
         $("newsError").textContent = "";
-        $("news").innerHTML = `<div class="muted">載入中（直接連線 Google 新聞）…</div>`;
+        $("news").innerHTML = `<div class="muted">載入中…</div>`;
         try {
-          const batches = await Promise.all(tickers.map((t) => fetchGN(t.query, -1).catch((e) => { console.warn(`[${t.label}] direct fetch failed:`, e?.message); return fetchGN(t.query, 0); })));
+          const batches = await Promise.race([
+            Promise.all(tickers.map((t) => fetchGN(t.query, -1).catch((e) => {
+              console.warn(`[${t.label}] fallback → proxy:`, e?.message);
+              return fetchGN(t.query, 0);
+            }))),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("全部請求超時（20秒）")), 20000)),
+          ]);
           const uniqByUrl = (arr) => {
             const seen = new Set();
             return arr.filter((x) => {
@@ -874,14 +894,16 @@
           });
           state.allNews = merged;
           if (!merged.length) {
-            $("newsError").textContent = "無法取得新聞。請在瀏覽器開 Developer Tools（右上角⋮→更多工具→開發者工具）→ Console 查看錯誤。";
+            $("newsError").textContent = "未能取得任何新聞。請長按「更新新聞」用開發者工具 Console 查看詳細錯誤。";
           }
           renderNews();
           setUpdatedAtNow();
         } catch (e) {
           const isCors = e?.message?.includes("Failed to fetch") || e?.name === "TypeError";
           $("newsError").textContent = isCors
-            ? `CORS 錯誤：${e?.message}`
+            ? `CORS 錯誤（可能被瀏覽器封鎖）`
+            : e?.message?.includes("超時")
+            ? e.message
             : `新聞載入失敗：${e?.message ?? "未知錯誤"}`;
           $("news").innerHTML = "";
         }
