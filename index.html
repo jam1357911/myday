@@ -802,30 +802,6 @@
         })).filter((x) => x.title && x.url);
       };
 
-      const parseGoogleRSS = (xmlText) => {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(xmlText, "text/xml");
-        const items = xml.querySelectorAll("item");
-        const results = [];
-        items.forEach((item) => {
-          const titleEl = item.querySelector("title");
-          const linkEl = item.querySelector("link");
-          const pubEl = item.querySelector("pubDate");
-          const descEl = item.querySelector("description");
-          const title = titleEl?.textContent?.trim() ?? "";
-          let link = linkEl?.textContent?.trim() ?? "";
-          const pubDate = pubEl?.textContent?.trim() ?? "";
-          let desc = descEl?.textContent?.trim() ?? "";
-          if (!title) return;
-          desc = desc.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
-          if (link.startsWith("https://news.google.com/rss/articles/")) {
-            link = link.replace("?oc=5", "");
-          }
-          results.push({ title, url: link, pubDate, desc: desc.slice(0, 120) });
-        });
-        return results;
-      };
-
       const fetchWithTimeout = async (url, ms = 12000) => {
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), ms);
