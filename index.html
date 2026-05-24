@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>香港天氣 + To‑Do + 美股科技中文新聞</title>
+    <meta name="description" content="提供香港即時天氣、待辦事項以及美國科技股中文新聞整合。" />
     <style>
       :root {
         color-scheme: light;
@@ -491,7 +492,7 @@
 
         <section class="card" style="grid-column: 1 / -1">
           <div class="hd">
-            <h2>美股科技股中文新聞（Google 新聞）</h2>
+            <h2>美股科技中文新聞（新浪財經 + Google 新聞）</h2>
             <button id="refreshNews" class="btn" type="button">更新新聞</button>
           </div>
           <div class="bd">
@@ -763,12 +764,69 @@
         return results;
       };
 
-      const CORS_PROXIES = [
-        (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
-        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      const TICKER_KEYWORDS = {
+        AAPL: ["蘋果", "apple", "iphone", "ipad", "ios", "aapl"],
+        MSFT: ["微軟", "microsoft", "msft", "windows", "azure", "copilot"],
+        NVDA: ["輝達", "nvidia", "nvda", "gpu", "黃仁勳", "jensen"],
+        TSLA: ["特斯拉", "tesla", "tsla", "馬斯克", "elon musk", "spacex"],
+        AMZN: ["亞馬遜", "amazon", "amzn", "aws"],
+        META: ["meta", "facebook", "fb", "instagram", "instagram", "whatsapp"],
+        GOOGL: ["google", "alphabet", "googl", "youtube", "gemini"],
+      };
+
+      const MATCHED_LABELS = {
+        AAPL: "蘋果", MSFT: "微軟", NVDA: "輝達",
+        TSLA: "特斯拉", AMZN: "亞馬遜", META: "Meta", GOOGL: "Google",
+      };
+
+      const NEWS_SOURCES = [
+        { label: "新浪財經", feeds: ["https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=1686&k=&num=20&page=1&r=0.5"] },
+        { label: "新浪科技", feeds: ["https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2517&k=&num=20&page=1&r=0.5"] },
+        { label: "新浪港股", feeds: ["https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2516&k=&num=20&page=1&r=0.5"] },
       ];
 
-      const fetchWithTimeout = async (url, ms = 10000) => {
+      const matchesTickers = (title, desc) => {
+        const text = `${title} ${desc}`.toLowerCase();
+        return Object.entries(TICKER_KEYWORDS)
+          .filter(([, kws]) => kws.some((kw) => text.includes(kw.toLowerCase())))
+          .map(([id]) => id);
+      };
+
+      const parseSinaJsonFeed = (data) => {
+        if (!data?.list) return [];
+        return data.list.map((item) => ({
+          title: item.title || "",
+          url: item.url || "",
+          pubDate: item.ctime ? new Date(item.ctime * 1000).toUTCString() : "",
+          desc: item.intro || item.desc || "",
+        })).filter((x) => x.title && x.url);
+      };
+
+      const parseGoogleRSS = (xmlText) => {
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, "text/xml");
+        const items = xml.querySelectorAll("item");
+        const results = [];
+        items.forEach((item) => {
+          const titleEl = item.querySelector("title");
+          const linkEl = item.querySelector("link");
+          const pubEl = item.querySelector("pubDate");
+          const descEl = item.querySelector("description");
+          const title = titleEl?.textContent?.trim() ?? "";
+          let link = linkEl?.textContent?.trim() ?? "";
+          const pubDate = pubEl?.textContent?.trim() ?? "";
+          let desc = descEl?.textContent?.trim() ?? "";
+          if (!title) return;
+          desc = desc.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+          if (link.startsWith("https://news.google.com/rss/articles/")) {
+            link = link.replace("?oc=5", "");
+          }
+          results.push({ title, url: link, pubDate, desc: desc.slice(0, 120) });
+        });
+        return results;
+      };
+
+      const fetchWithTimeout = async (url, ms = 12000) => {
         const controller = new AbortController();
         const id = setTimeout(() => controller.abort(), ms);
         try {
@@ -781,26 +839,21 @@
         }
       };
 
-      const fetchGN = async (query, proxyIndex = 0) => {
+      const fetchSinaFeed = async (feedUrl) => {
+        const res = await fetchWithTimeout(feedUrl);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        return parseSinaJsonFeed(data);
+      };
+
+      const fetchGN = async (query) => {
         const q = encodeURIComponent(query);
-        const targetUrl = `https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant&sortBy=publishedAt`;
-        const url = proxyIndex >= 0 ? CORS_PROXIES[proxyIndex](targetUrl) : targetUrl;
-        try {
-          const res = await fetchWithTimeout(url, 12000);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const text = await res.text();
-          if (!text || text.length < 100) throw new Error(`空白回應 (${text?.length ?? 0} bytes)`);
-          const items = parseGoogleRSS(text);
-          console.log(`[${query}] proxy ${proxyIndex} → ${items.length} items`);
-          return items;
-        } catch (e) {
-          const isAbort = e?.name === "AbortError";
-          console.warn(`[${query}] proxy ${proxyIndex} failed: ${isAbort ? "TIMEOUT" : e?.message}`);
-          if (!isAbort && proxyIndex < CORS_PROXIES.length - 1) {
-            return fetchGN(query, proxyIndex + 1);
-          }
-          throw e;
-        }
+        const url = `https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant&sortBy=publishedAt`;
+        const res = await fetchWithTimeout(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (!text || text.length < 100) throw new Error(`空白回應`);
+        return parseGoogleRSS(text);
       };
 
       const renderNews = () => {
@@ -825,14 +878,10 @@
           const time = document.createElement("span");
           time.textContent = fmt.pubDate(it.pubDate);
           const tags = document.createElement("span");
-          const matched = Array.from(state.activeTickers)
-            .filter((t) => matchesTicker(it.title, it.desc, t))
-            .map((t) => {
-              const info = tickers.find((x) => x.id === t);
-              return `<span class="tag">${info?.label ?? t}</span>`;
-            })
+          const matched = matchesTickers(it.title, it.desc)
+            .map((t) => `<span class="tag">${MATCHED_LABELS[t] ?? t}</span>`)
             .join("");
-          tags.innerHTML = tags.innerHTML + matched;
+          tags.innerHTML = matched;
           sub.appendChild(time);
           if (it.desc) {
             const descSpan = document.createElement("span");
@@ -870,15 +919,26 @@
 
       const loadNews = async () => {
         $("newsError").textContent = "";
-        $("news").innerHTML = `<div class="muted">載入中…</div>`;
+        $("news").innerHTML = `<div class="muted">載入中（新浪財經）…</div>`;
         try {
-          const batches = await Promise.race([
-            Promise.all(tickers.map((t) => fetchGN(t.query, -1).catch((e) => {
-              console.warn(`[${t.label}] fallback → proxy:`, e?.message);
-              return fetchGN(t.query, 0);
-            }))),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("全部請求超時（20秒）")), 20000)),
-          ]);
+          const sinaTasks = NEWS_SOURCES.map((src) =>
+            Promise.allSettled(src.feeds.map((feed) => fetchSinaFeed(feed)))
+              .then((results) => results.flatMap((r) => r.status === "fulfilled" ? r.value : []))
+              .catch(() => [])
+          );
+          const sinaResults = await Promise.race([
+            Promise.all(sinaTasks),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("新浪財經超時（15秒）")), 15000)),
+          ]).catch(() => []);
+
+          let googleResults = [];
+          try {
+            googleResults = await Promise.race([
+              Promise.all(tickers.map((t) => fetchGN(t.query))),
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Google新聞超時")), 15000)),
+            ]).then((batches) => batches.flat()).catch(() => []);
+          } catch {}
+
           const uniqByUrl = (arr) => {
             const seen = new Set();
             return arr.filter((x) => {
@@ -887,21 +947,21 @@
               return true;
             });
           };
-          const merged = uniqByUrl(batches.flat()).sort((a, b) => {
+          const merged = uniqByUrl([...sinaResults, ...googleResults]).sort((a, b) => {
             const da = a.pubDate ? new Date(a.pubDate) : new Date(0);
             const db = b.pubDate ? new Date(b.pubDate) : new Date(0);
             return db - da;
           });
           state.allNews = merged;
           if (!merged.length) {
-            $("newsError").textContent = "未能取得任何新聞。請長按「更新新聞」用開發者工具 Console 查看詳細錯誤。";
+            $("newsError").textContent = "未能取得新聞。請在瀏覽器試開：https://feed.mix.sina.com.cn （若無法打開，代表網絡被封）";
           }
           renderNews();
           setUpdatedAtNow();
         } catch (e) {
           const isCors = e?.message?.includes("Failed to fetch") || e?.name === "TypeError";
           $("newsError").textContent = isCors
-            ? `CORS 錯誤（可能被瀏覽器封鎖）`
+            ? `CORS 錯誤`
             : e?.message?.includes("超時")
             ? e.message
             : `新聞載入失敗：${e?.message ?? "未知錯誤"}`;
