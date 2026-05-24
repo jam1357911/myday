@@ -503,7 +503,7 @@
       </div>
 
       <footer>
-        天氣同新聞需要上網。部分瀏覽器喺 file:// 直接開啟時可能會封鎖 API 請求；如遇到此情況，需要用任何靜態網站託管或用本機 HTTP server 開啟。
+        天氣同新聞需要上網。⚠️ 若用 file:// 直接開啟，新聞可能因 CORS 限制而載入失敗。建議：① 上傳至 GitHub Pages / Netlify 等靜態託管；② 用 Termux（Android）或 Pythonista（iOS）起本地 HTTP server；③ 用 VS Code Live Server 擴展（電腦）。To‑Do 數據保存在瀏覽器 localStorage，唔需要上網。
       </footer>
     </div>
 
@@ -763,13 +763,30 @@
         return results;
       };
 
-      const fetchGN = async (query) => {
+      const CORS_PROXIES = [
+        (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      ];
+
+      const fetchGN = async (query, proxyIndex = 0) => {
         const q = encodeURIComponent(query);
-        const url = `https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant&sortBy=publishedAt`;
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const text = await res.text();
-        return parseGoogleRSS(text);
+        const targetUrl = `https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant&sortBy=publishedAt`;
+        const url = proxyIndex >= 0 ? CORS_PROXIES[proxyIndex](targetUrl) : targetUrl;
+        try {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const text = await res.text();
+          if (!text || text.length < 100) throw new Error(`空白回應 (${text?.length ?? 0} bytes)`);
+          const items = parseGoogleRSS(text);
+          console.log(`[${query}] fetched ${items.length} items`);
+          return items;
+        } catch (e) {
+          console.warn(`[${query}] proxy ${proxyIndex} failed:`, e?.message);
+          if (proxyIndex < CORS_PROXIES.length - 1) {
+            return fetchGN(query, proxyIndex + 1);
+          }
+          throw e;
+        }
       };
 
       const renderNews = () => {
@@ -839,9 +856,9 @@
 
       const loadNews = async () => {
         $("newsError").textContent = "";
-        $("news").innerHTML = `<div class="muted">載入中…</div>`;
+        $("news").innerHTML = `<div class="muted">載入中（直接連線 Google 新聞）…</div>`;
         try {
-          const batches = await Promise.all(tickers.map((t) => fetchGN(t.query).catch(() => [])));
+          const batches = await Promise.all(tickers.map((t) => fetchGN(t.query, -1).catch((e) => { console.warn(`[${t.label}] direct fetch failed:`, e?.message); return fetchGN(t.query, 0); })));
           const uniqByUrl = (arr) => {
             const seen = new Set();
             return arr.filter((x) => {
@@ -856,10 +873,16 @@
             return db - da;
           });
           state.allNews = merged;
+          if (!merged.length) {
+            $("newsError").textContent = "無法取得新聞。請在瀏覽器開 Developer Tools（右上角⋮→更多工具→開發者工具）→ Console 查看錯誤。";
+          }
           renderNews();
           setUpdatedAtNow();
         } catch (e) {
-          $("newsError").textContent = `新聞載入失敗：${e?.message ?? "未知錯誤"}`;
+          const isCors = e?.message?.includes("Failed to fetch") || e?.name === "TypeError";
+          $("newsError").textContent = isCors
+            ? `CORS 錯誤：${e?.message}`
+            : `新聞載入失敗：${e?.message ?? "未知錯誤"}`;
           $("news").innerHTML = "";
         }
       };
