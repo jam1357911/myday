@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>香港天氣 + To‑Do + 美股科技中文新聞</title>
-    <meta name="description" content="提供香港即時天氣、待辦事項以及美國科技股中文新聞整合。" />
     <style>
       :root {
         color-scheme: light;
@@ -21,400 +20,125 @@
         --shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
         --radius: 16px;
         --radius-sm: 12px;
-        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-          "Courier New", monospace;
-        --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
-          "Apple Color Emoji", "Segoe UI Emoji";
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
       }
-
-      * {
-        box-sizing: border-box;
-      }
-
+      * { box-sizing: border-box; }
       body {
-        margin: 0;
-        font-family: var(--sans);
-        color: var(--text);
+        margin: 0; font-family: var(--sans); color: var(--text);
         background: radial-gradient(1200px 800px at 20% 10%, rgba(125, 211, 252, 0.25), transparent 55%),
           radial-gradient(900px 700px at 85% 20%, rgba(52, 211, 153, 0.18), transparent 60%),
-          radial-gradient(1000px 700px at 40% 95%, rgba(251, 113, 133, 0.18), transparent 60%),
-          var(--bg);
+          radial-gradient(1000px 700px at 40% 95%, rgba(251, 113, 133, 0.18), transparent 60%), var(--bg);
         min-height: 100dvh;
       }
-
-      a {
-        color: inherit;
-      }
-
-      .wrap {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 18px;
-      }
-
-      header {
-        display: flex;
-        gap: 14px;
-        align-items: baseline;
-        justify-content: space-between;
-        margin: 6px 0 18px;
-      }
-
-      header h1 {
-        margin: 0;
-        font-size: 18px;
-        letter-spacing: 0.2px;
-        font-weight: 650;
-      }
-
-      header .meta {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        flex-wrap: wrap;
-      }
-
+      a { color: inherit; }
+      .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
+      header { display: flex; gap: 14px; align-items: baseline; justify-content: space-between; margin: 6px 0 18px; flex-wrap: wrap; }
+      header h1 { margin: 0; font-size: 18px; letter-spacing: 0.2px; font-weight: 650; }
+      header .meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
       .pill {
-        display: inline-flex;
-        gap: 8px;
-        align-items: center;
-        padding: 8px 10px;
-        border: 1px solid var(--border);
-        background: var(--panel);
-        border-radius: 999px;
-        backdrop-filter: blur(10px);
-        box-shadow: var(--shadow);
+        display: inline-flex; gap: 8px; align-items: center; padding: 8px 10px;
+        border: 1px solid var(--border); background: var(--panel); border-radius: 999px;
+        backdrop-filter: blur(10px); box-shadow: var(--shadow);
       }
-
-      .pill .label {
-        color: var(--muted);
-        font-size: 12px;
-      }
-
-      .pill .value {
-        font-family: var(--mono);
-        font-size: 12px;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 14px;
-      }
-
-      @media (min-width: 900px) {
-        .grid {
-          grid-template-columns: 0.95fr 1.05fr;
-        }
-      }
-
+      .pill .label { color: var(--muted); font-size: 12px; }
+      .pill .value { font-family: var(--mono); font-size: 12px; }
+      .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+      @media (min-width: 900px) { .grid { grid-template-columns: 0.95fr 1.05fr; } }
       .card {
-        border: 1px solid var(--border);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        overflow: hidden;
-        backdrop-filter: blur(12px);
+        border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+        border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; backdrop-filter: blur(12px);
       }
-
       .card .hd {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 14px 12px;
-        border-bottom: 1px solid var(--border);
-        background: rgba(0, 0, 0, 0.12);
+        display: flex; align-items: center; justify-content: space-between; padding: 14px 14px 12px;
+        border-bottom: 1px solid var(--border); background: rgba(0, 0, 0, 0.12);
       }
-
-      .card .hd h2 {
-        margin: 0;
-        font-size: 14px;
-        letter-spacing: 0.2px;
-      }
-
-      .card .bd {
-        padding: 14px;
-      }
-
+      .card .hd h2 { margin: 0; font-size: 14px; letter-spacing: 0.2px; }
+      .card .bd { padding: 14px; }
       .btn {
-        border: 1px solid var(--border);
-        background: var(--panel-2);
-        color: var(--text);
-        border-radius: 999px;
-        padding: 8px 10px;
-        font-size: 12px;
-        cursor: pointer;
+        border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+        border-radius: 999px; padding: 8px 10px; font-size: 12px; cursor: pointer;
       }
-
-      .btn:hover {
-        border-color: rgba(255, 255, 255, 0.22);
-      }
-
-      .btn:active {
-        transform: translateY(1px);
-      }
-
-      .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      .weather-top {
-        display: grid;
-        gap: 12px;
-        grid-template-columns: 1fr;
-      }
-
-      @media (min-width: 520px) {
-        .weather-top {
-          grid-template-columns: 1.1fr 0.9fr;
-          align-items: start;
-        }
-      }
-
-      .big {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .temp {
-        font-size: 40px;
-        font-weight: 700;
-        letter-spacing: -0.4px;
-      }
-
-      .desc {
-        color: var(--muted);
-        line-height: 1.25;
-      }
-
-      .kpi {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-      }
-
+      .btn:hover { border-color: rgba(255, 255, 255, 0.22); }
+      .btn:active { transform: translateY(1px); }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+      .weather-top { display: grid; gap: 12px; grid-template-columns: 1fr; }
+      @media (min-width: 520px) { .weather-top { grid-template-columns: 1.1fr 0.9fr; align-items: start; } }
+      .big { display: flex; gap: 12px; align-items: center; }
+      .temp { font-size: 40px; font-weight: 700; letter-spacing: -0.4px; }
+      .desc { color: var(--muted); line-height: 1.25; }
+      .kpi { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
       .kpi .box {
-        border: 1px solid var(--border);
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: var(--radius-sm);
-        padding: 10px;
+        border: 1px solid var(--border); background: rgba(255, 255, 255, 0.06);
+        border-radius: var(--radius-sm); padding: 10px;
       }
-
-      .kpi .box .t {
-        color: var(--muted);
-        font-size: 12px;
-      }
-
-      .kpi .box .v {
-        font-family: var(--mono);
-        font-size: 12px;
-        margin-top: 4px;
-      }
-
-      .rain-section {
-        margin-top: 14px;
-        border-top: 1px solid var(--border);
-        padding-top: 12px;
-      }
-
-      .rain-section h3 {
-        margin: 0 0 8px;
-        font-size: 12px;
-        color: var(--rain);
-        letter-spacing: 0.3px;
-      }
-
-      .hourly-rain {
-        display: flex;
-        gap: 6px;
-        overflow-x: auto;
-        padding-bottom: 4px;
-        scrollbar-width: none;
-      }
-
-      .hourly-rain::-webkit-scrollbar {
-        display: none;
-      }
-
+      .kpi .box .t { color: var(--muted); font-size: 12px; }
+      .kpi .box .v { font-family: var(--mono); font-size: 12px; margin-top: 4px; }
+      .rain-section { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
+      .rain-section h3 { margin: 0 0 8px; font-size: 12px; color: var(--rain); letter-spacing: 0.3px; }
+      .hourly-rain { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+      .hourly-rain::-webkit-scrollbar { display: none; }
       .hour-slot {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        min-width: 38px;
-        padding: 6px 4px;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        background: rgba(0, 0, 0, 0.15);
-        flex-shrink: 0;
+        display: flex; flex-direction: column; align-items: center; gap: 4px;
+        min-width: 38px; padding: 6px 4px; border: 1px solid var(--border);
+        border-radius: 10px; background: rgba(0, 0, 0, 0.15); flex-shrink: 0;
       }
-
-      .hour-slot .time {
-        font-size: 11px;
-        color: var(--muted);
-      }
-
-      .hour-slot .pct {
-        font-size: 13px;
-        font-weight: 700;
-        font-family: var(--mono);
-      }
-
-      .hour-slot .drop {
-        font-size: 11px;
-      }
-
-      .hour-slot.rainy {
-        border-color: rgba(96, 165, 250, 0.4);
-        background: rgba(96, 165, 250, 0.1);
-      }
-
-      .muted {
-        color: var(--muted);
-      }
-
-      .err {
-        color: var(--bad);
-      }
-
-      .todo-row {
-        display: flex;
-        gap: 10px;
-      }
-
+      .hour-slot .time { font-size: 11px; color: var(--muted); }
+      .hour-slot .pct { font-size: 13px; font-weight: 700; font-family: var(--mono); }
+      .hour-slot .drop { font-size: 11px; }
+      .hour-slot.rainy { border-color: rgba(96, 165, 250, 0.4); background: rgba(96, 165, 250, 0.1); }
+      .muted { color: var(--muted); }
+      .err { color: var(--bad); }
+      .todo-row { display: flex; gap: 10px; }
       .todo-row input[type="text"] {
-        flex: 1;
-        border: 1px solid var(--border);
-        background: rgba(0, 0, 0, 0.18);
-        color: var(--text);
-        border-radius: 999px;
-        padding: 10px 12px;
-        outline: none;
+        flex: 1; border: 1px solid var(--border); background: rgba(0, 0, 0, 0.18);
+        color: var(--text); border-radius: 999px; padding: 10px 12px; outline: none;
       }
-
-      .todo-row input[type="text"]::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-      }
-
-      .list {
-        margin-top: 12px;
-        display: grid;
-        gap: 10px;
-      }
-
+      .todo-row input[type="text"]::placeholder { color: rgba(255, 255, 255, 0.5); }
+      .list { margin-top: 12px; display: grid; gap: 10px; }
       .item {
-        display: grid;
-        grid-template-columns: 18px 1fr auto;
-        gap: 10px;
-        align-items: center;
-        border: 1px solid var(--border);
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: var(--radius-sm);
-        padding: 10px 10px;
+        display: grid; grid-template-columns: 18px 1fr auto; gap: 10px; align-items: center;
+        border: 1px solid var(--border); background: rgba(255, 255, 255, 0.06);
+        border-radius: var(--radius-sm); padding: 10px;
       }
-
-      .item.done {
-        opacity: 0.72;
-      }
-
-      .item .text {
-        word-break: break-word;
-        line-height: 1.3;
-      }
-
-      .item.done .text {
-        text-decoration: line-through;
-        color: rgba(255, 255, 255, 0.7);
-      }
-
+      .item.done { opacity: 0.72; }
+      .item .text { word-break: break-word; line-height: 1.3; }
+      .item.done .text { text-decoration: line-through; color: rgba(255, 255, 255, 0.7); }
       .icon-btn {
-        border: 1px solid var(--border);
-        background: rgba(0, 0, 0, 0.18);
-        color: var(--text);
-        border-radius: 10px;
-        padding: 6px 8px;
-        font-size: 12px;
-        cursor: pointer;
+        border: 1px solid var(--border); background: rgba(0, 0, 0, 0.18); color: var(--text);
+        border-radius: 10px; padding: 6px 8px; font-size: 12px; cursor: pointer;
       }
-
-      .icon-btn:hover {
-        border-color: rgba(255, 255, 255, 0.22);
-      }
-
-      .news {
-        display: grid;
-        gap: 10px;
-      }
-
-      .news a {
-        text-decoration: none;
-      }
-
+      .icon-btn:hover { border-color: rgba(255, 255, 255, 0.22); }
+      .news { display: grid; gap: 10px; }
+      .news a { text-decoration: none; }
       .news .n {
-        border: 1px solid var(--border);
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: var(--radius-sm);
-        padding: 10px 10px;
+        border: 1px solid var(--border); background: rgba(255, 255, 255, 0.06);
+        border-radius: var(--radius-sm); padding: 10px;
       }
-
-      .news .ttl {
-        margin: 0;
-        font-size: 13px;
-        line-height: 1.25;
-      }
-
+      .news .ttl { margin: 0; font-size: 13px; line-height: 1.25; }
       .news .sub {
-        margin-top: 6px;
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        color: var(--muted);
-        font-size: 12px;
+        margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap;
+        color: var(--muted); font-size: 12px;
       }
-
       .news .sub .tag {
-        background: rgba(125, 211, 252, 0.12);
-        border: 1px solid rgba(125, 211, 252, 0.2);
-        color: var(--accent);
-        border-radius: 999px;
-        padding: 1px 6px;
-        font-size: 11px;
+        background: rgba(125, 211, 252, 0.12); border: 1px solid rgba(125, 211, 252, 0.2);
+        color: var(--accent); border-radius: 999px; padding: 1px 6px; font-size: 11px;
       }
-
       .ticker-tag {
-        display: inline-flex;
-        border: 1px solid var(--border);
-        background: var(--panel-2);
-        color: var(--muted);
-        border-radius: 999px;
-        padding: 4px 10px;
-        font-size: 11px;
-        cursor: pointer;
-        transition: border-color 0.15s;
-        user-select: none;
+        display: inline-flex; border: 1px solid var(--border); background: var(--panel-2);
+        color: var(--muted); border-radius: 999px; padding: 4px 10px;
+        font-size: 11px; cursor: pointer; transition: border-color 0.15s; user-select: none;
       }
-
-      .ticker-tag:hover,
-      .ticker-tag.active {
-        border-color: var(--accent);
-        color: var(--accent);
+      .ticker-tag:hover, .ticker-tag.active { border-color: var(--accent); color: var(--accent); }
+      .news-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+      .news-sources { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+      .src-pill {
+        border: 1px solid var(--border); background: var(--panel-2); color: var(--muted);
+        border-radius: 999px; padding: 4px 10px; font-size: 11px;
       }
-
-      .news-meta {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-        margin-bottom: 10px;
-      }
-
-      footer {
-        margin: 16px 0 6px;
-        color: rgba(255, 255, 255, 0.55);
-        font-size: 12px;
-        line-height: 1.35;
-      }
+      .src-pill.ok { border-color: var(--good); color: var(--good); }
+      .src-pill.fail { border-color: var(--bad); color: var(--bad); }
+      footer { margin: 16px 0 6px; color: rgba(255, 255, 255, 0.55); font-size: 12px; line-height: 1.35; }
     </style>
   </head>
   <body>
@@ -422,23 +146,13 @@
       <header>
         <h1>香港天氣 · To‑Do · 美股科技中文新聞</h1>
         <div class="meta">
-          <div class="pill">
-            <span class="label">狀態</span>
-            <span id="status" class="value">就緒（未載入）</span>
-          </div>
-          <div class="pill">
-            <span class="label">更新</span>
-            <span id="updatedAt" class="value">—</span>
-          </div>
+          <div class="pill"><span class="label">狀態</span><span id="status" class="value">就緒（未載入）</span></div>
+          <div class="pill"><span class="label">更新</span><span id="updatedAt" class="value">—</span></div>
         </div>
       </header>
-
       <div class="grid">
         <section class="card">
-          <div class="hd">
-            <h2>香港天氣（即時 / 今日）</h2>
-            <button id="refreshWeather" class="btn" type="button">更新天氣</button>
-          </div>
+          <div class="hd"><h2>香港天氣（即時 / 今日）</h2><button id="refreshWeather" class="btn" type="button">更新天氣</button></div>
           <div class="bd">
             <div class="weather-top">
               <div>
@@ -448,23 +162,12 @@
                     <div id="wDesc" class="desc muted">按「更新天氣」載入</div>
                   </div>
                 </div>
-                <div style="margin-top: 10px" class="muted">
-                  <span id="todayRange">—</span>
-                </div>
+                <div style="margin-top: 10px" class="muted"><span id="todayRange">—</span></div>
               </div>
               <div class="kpi">
-                <div class="box">
-                  <div class="t">濕度</div>
-                  <div id="hum" class="v">—</div>
-                </div>
-                <div class="box">
-                  <div class="t">風速</div>
-                  <div id="wind" class="v">—</div>
-                </div>
-                <div class="box">
-                  <div class="t">天氣碼</div>
-                  <div id="code" class="v">—</div>
-                </div>
+                <div class="box"><div class="t">濕度</div><div id="hum" class="v">—</div></div>
+                <div class="box"><div class="t">風速</div><div id="wind" class="v">—</div></div>
+                <div class="box"><div class="t">天氣碼</div><div id="code" class="v">—</div></div>
               </div>
             </div>
             <div id="rainSection" class="rain-section" style="display:none">
@@ -474,12 +177,8 @@
             <div id="wError" style="margin-top: 12px" class="err"></div>
           </div>
         </section>
-
         <section class="card">
-          <div class="hd">
-            <h2>To‑Do List</h2>
-            <button id="clearDone" class="btn" type="button">清除已完成</button>
-          </div>
+          <div class="hd"><h2>To‑Do List</h2><button id="clearDone" class="btn" type="button">清除已完成</button></div>
           <div class="bd">
             <form id="todoForm" class="todo-row" autocomplete="off">
               <input id="todoInput" type="text" inputmode="text" placeholder="輸入 To‑Do，例如：買牛奶 / 睇財報" />
@@ -489,83 +188,42 @@
             <div id="todoEmpty" class="muted" style="margin-top: 10px; display: none">未有 To‑Do。</div>
           </div>
         </section>
-
         <section class="card" style="grid-column: 1 / -1">
-          <div class="hd">
-            <h2>美股科技中文新聞（新浪財經 + Google 新聞）</h2>
-            <button id="refreshNews" class="btn" type="button">更新新聞</button>
-          </div>
+          <div class="hd"><h2>美股科技中文新聞</h2><button id="refreshNews" class="btn" type="button">更新新聞</button></div>
           <div class="bd">
+            <div class="news-sources" id="newsSources"></div>
             <div class="news-meta" id="tickerFilters"></div>
-            <div id="news" class="news"><div class="muted">按「更新新聞」載入美股科技股中文新聞</div></div>
+            <div id="news" class="news"><div class="muted">按「更新新聞」載入</div></div>
             <div id="newsError" style="margin-top: 12px" class="err"></div>
           </div>
         </section>
       </div>
-
-      <footer>
-        天氣同新聞需要上網。⚠️ 若用 file:// 直接開啟，新聞可能因 CORS 限制而載入失敗。建議：① 上傳至 GitHub Pages / Netlify 等靜態託管；② 用 Termux（Android）或 Pythonista（iOS）起本地 HTTP server；③ 用 VS Code Live Server 擴展（電腦）。To‑Do 數據保存在瀏覽器 localStorage，唔需要上網。
-      </footer>
+      <footer>天氣同新聞需要上網。To‑Do 數據保存在瀏覽器 localStorage，唔需要上網。</footer>
     </div>
-
     <script>
       const $ = (id) => document.getElementById(id);
-
-      const state = {
-        todos: [],
-        lastUpdatedAt: null,
-        activeTickers: new Set(["AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "META", "GOOGL"]),
-        allNews: [],
-      };
-
-      const STORAGE_KEY = "hk_weather_todo_news_v1";
+      const state = { todos: [], lastUpdatedAt: null, activeTickers: new Set(["AAPL","MSFT","NVDA","TSLA","AMZN","META","GOOGL"]), allNews: [], newsSourceStatus: {} };
+      const STORAGE_KEY = "hk_weather_todo_news_v2";
 
       const weatherCodeText = (code) => {
-        const map = {
-          0: "天晴", 1: "大致天晴", 2: "部分多雲", 3: "多雲",
-          45: "有霧", 48: "霧（霜凍）",
-          51: "微雨", 53: "細雨", 55: "毛毛雨",
-          56: "凍雨（輕）", 57: "凍雨（強）",
-          61: "小雨", 63: "中雨", 65: "大雨",
-          66: "凍雨（輕）", 67: "凍雨（強）",
-          71: "小雪", 73: "中雪", 75: "大雪", 77: "霰",
-          80: "陣雨（輕）", 81: "陣雨（中）", 82: "陣雨（強）",
-          85: "陣雪（輕）", 86: "陣雪（強）",
-          95: "雷暴", 96: "雷暴（有冰雹）", 99: "雷暴（強冰雹）",
-        };
+        const map = {0:"天晴",1:"大致天晴",2:"部分多雲",3:"多雲",45:"有霧",48:"霧（霜凍）",51:"微雨",53:"細雨",55:"毛毛雨",56:"凍雨（輕）",57:"凍雨（強）",61:"小雨",63:"中雨",65:"大雨",66:"凍雨（輕）",67:"凍雨（強）",71:"小雪",73:"中雪",75:"大雪",77:"霰",80:"陣雨（輕）",81:"陣雨（中）",82:"陣雨（強）",85:"陣雪（輕）",86:"陣雪（強）",95:"雷暴",96:"雷暴（有冰雹）",99:"雷暴（強冰雹）"};
         return map[code] ?? "未知";
       };
 
       const fmt = {
         dtHK(ts) {
           const d = ts ? new Date(ts) : new Date();
-          return new Intl.DateTimeFormat("zh-Hant-HK", {
-            dateStyle: "medium",
-            timeStyle: "short",
-            timeZone: "Asia/Hong_Kong",
-          }).format(d);
+          return new Intl.DateTimeFormat("zh-Hant-HK", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Hong_Kong" }).format(d);
         },
         dtHKTime(ts) {
           const d = ts ? new Date(ts) : new Date();
-          return new Intl.DateTimeFormat("zh-Hant-HK", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-            timeZone: "Asia/Hong_Kong",
-          }).format(d);
+          return new Intl.DateTimeFormat("zh-Hant-HK", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Hong_Kong" }).format(d);
         },
         pubDate(str) {
           if (!str) return "—";
           const d = new Date(str);
           if (isNaN(d)) return str;
-          return new Intl.DateTimeFormat("zh-Hant-HK", {
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-            timeZone: "Asia/Hong_Kong",
-          }).format(d);
+          return new Intl.DateTimeFormat("zh-Hant-HK", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Hong_Kong" }).format(d);
         },
         num(n, digits = 0) {
           if (typeof n !== "number" || Number.isNaN(n)) return "—";
@@ -574,11 +232,7 @@
       };
 
       const setStatus = (text) => { $("status").textContent = text; };
-
-      const setUpdatedAtNow = () => {
-        state.lastUpdatedAt = Date.now();
-        $("updatedAt").textContent = fmt.dtHK(state.lastUpdatedAt);
-      };
+      const setUpdatedAtNow = () => { state.lastUpdatedAt = Date.now(); $("updatedAt").textContent = fmt.dtHK(state.lastUpdatedAt); };
 
       const loadPersisted = () => {
         try {
@@ -588,11 +242,8 @@
           if (Array.isArray(parsed?.todos)) state.todos = parsed.todos;
         } catch {}
       };
-
       const persist = () => {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({ todos: state.todos }));
-        } catch {}
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ todos: state.todos })); } catch {}
       };
 
       const renderTodos = () => {
@@ -605,11 +256,7 @@
           const cb = document.createElement("input");
           cb.type = "checkbox";
           cb.checked = !!t.done;
-          cb.addEventListener("change", () => {
-            t.done = cb.checked;
-            persist();
-            renderTodos();
-          });
+          cb.addEventListener("change", () => { t.done = cb.checked; persist(); renderTodos(); });
           const text = document.createElement("div");
           text.className = "text";
           text.textContent = t.text;
@@ -617,15 +264,8 @@
           del.className = "icon-btn";
           del.type = "button";
           del.textContent = "刪除";
-          del.addEventListener("click", () => {
-            state.todos = state.todos.filter((x) => x.id !== t.id);
-            persist();
-            renderTodos();
-          });
-          row.appendChild(cb);
-          row.appendChild(text);
-          row.appendChild(del);
-          root.appendChild(row);
+          del.addEventListener("click", () => { state.todos = state.todos.filter((x) => x.id !== t.id); persist(); renderTodos(); });
+          row.appendChild(cb); row.appendChild(text); row.appendChild(del); root.appendChild(row);
         }
       };
 
@@ -633,47 +273,27 @@
         const trimmed = (text ?? "").trim();
         if (!trimmed) return false;
         state.todos.unshift({ id: crypto.randomUUID(), text: trimmed, done: false, createdAt: Date.now() });
-        persist();
-        renderTodos();
-        return true;
+        persist(); renderTodos(); return true;
       };
 
-      const clearDone = () => {
-        state.todos = state.todos.filter((t) => !t.done);
-        persist();
-        renderTodos();
-      };
+      const clearDone = () => { state.todos = state.todos.filter((t) => !t.done); persist(); renderTodos(); };
 
       const loadWeather = async () => {
         $("wError").textContent = "";
-        const url =
-          "https://api.open-meteo.com/v1/forecast?latitude=22.3193&longitude=114.1694&current=temperature_2m,relative_humidity_2m,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=precipitation_probability&timezone=Asia%2FHong_Kong&forecast_days=1";
+        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.3193&longitude=114.1694&current=temperature_2m,relative_humidity_2m,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=precipitation_probability&timezone=Asia%2FHong_Kong&forecast_days=1";
         try {
           const res = await fetch(url, { cache: "no-store" });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
-
-          const t = data?.current?.temperature_2m;
-          const h = data?.current?.relative_humidity_2m;
-          const w = data?.current?.wind_speed_10m;
-          const code = data?.daily?.weather_code?.[0];
-          const tMax = data?.daily?.temperature_2m_max?.[0];
-          const tMin = data?.daily?.temperature_2m_min?.[0];
-
+          const t = data?.current?.temperature_2m, h = data?.current?.relative_humidity_2m, w = data?.current?.wind_speed_10m;
+          const code = data?.daily?.weather_code?.[0], tMax = data?.daily?.temperature_2m_max?.[0], tMin = data?.daily?.temperature_2m_min?.[0];
           $("temp").textContent = typeof t === "number" ? `${fmt.num(t)}°C` : "—";
           $("hum").textContent = typeof h === "number" ? `${fmt.num(h)}%` : "—";
           $("wind").textContent = typeof w === "number" ? `${fmt.num(w, 1)} km/h` : "—";
           $("code").textContent = typeof code === "number" ? String(code) : "—";
-
-          const desc = typeof code === "number" ? weatherCodeText(code) : "—";
-          $("wDesc").textContent = desc;
-          $("todayRange").textContent =
-            typeof tMin === "number" && typeof tMax === "number"
-              ? `今日 ${fmt.num(tMin)}°C – ${fmt.num(tMax)}°C`
-              : "—";
-
-          const hourlyTime = data?.hourly?.time ?? [];
-          const hourlyPrecip = data?.hourly?.precipitation_probability ?? [];
+          $("wDesc").textContent = typeof code === "number" ? weatherCodeText(code) : "—";
+          $("todayRange").textContent = typeof tMin === "number" && typeof tMax === "number" ? `今日 ${fmt.num(tMin)}°C – ${fmt.num(tMax)}°C` : "—";
+          const hourlyTime = data?.hourly?.time ?? [], hourlyPrecip = data?.hourly?.precipitation_probability ?? [];
           const now = Date.now();
           const rainSlots = [];
           for (let i = 0; i < hourlyTime.length; i++) {
@@ -681,7 +301,6 @@
             if (ts < now - 3600000) continue;
             rainSlots.push({ ts, pct: hourlyPrecip[i] ?? 0 });
           }
-
           const root = $("hourlyRain");
           root.innerHTML = "";
           if (rainSlots.length) {
@@ -689,186 +308,109 @@
             for (const slot of rainSlots.slice(0, 24)) {
               const el = document.createElement("div");
               el.className = `hour-slot${slot.pct >= 30 ? " rainy" : ""}`;
-              const time = document.createElement("div");
-              time.className = "time";
-              time.textContent = fmt.dtHKTime(slot.ts);
-              const pct = document.createElement("div");
-              pct.className = "pct";
-              pct.style.color =
-                slot.pct >= 60 ? "#fb7185" : slot.pct >= 30 ? "#60a5fa" : "rgba(255,255,255,0.7)";
+              const time = document.createElement("div"); time.className = "time"; time.textContent = fmt.dtHKTime(slot.ts);
+              const pct = document.createElement("div"); pct.className = "pct";
+              pct.style.color = slot.pct >= 60 ? "#fb7185" : slot.pct >= 30 ? "#60a5fa" : "rgba(255,255,255,0.7)";
               pct.textContent = `${slot.pct}%`;
-              const drop = document.createElement("div");
-              drop.className = "drop";
-              drop.textContent = "💧";
-              el.appendChild(time);
-              el.appendChild(pct);
-              el.appendChild(drop);
-              root.appendChild(el);
+              const drop = document.createElement("div"); drop.className = "drop"; drop.textContent = "💧";
+              el.appendChild(time); el.appendChild(pct); el.appendChild(drop); root.appendChild(el);
             }
-          } else {
-            $("rainSection").style.display = "none";
-          }
+          } else { $("rainSection").style.display = "none"; }
           setUpdatedAtNow();
-        } catch (e) {
-          $("wError").textContent = `天氣載入失敗：${e?.message ?? "未知錯誤"}`;
-        }
-      };
-
-      const tickers = [
-        { id: "AAPL", label: "蘋果", query: "蘋果 AAPL 美股" },
-        { id: "MSFT", label: "微軟", query: "微軟 MSFT 美股" },
-        { id: "NVDA", label: "輝達", query: "輝達 NVIDIA NVDA 美股" },
-        { id: "TSLA", label: "特斯拉", query: "特斯拉 Tesla TSLA 美股" },
-        { id: "AMZN", label: "亞馬遜", query: "亞馬遜 亞馬遜 Amazon AMZN 美股" },
-        { id: "META", label: "Meta", query: "Meta 美股 Facebook" },
-        { id: "GOOGL", label: "Google", query: "Google Alphabet GOOGL 美股" },
-      ];
-
-      const tickerKeywords = {
-        AAPL: ["aapl", "蘋果", "apple", "iphone", "ipad", "mac", "ios", "app store"],
-        MSFT: ["msft", "微軟", "microsoft", "windows", "azure", "copilot", "linkedin"],
-        NVDA: ["nvda", "輝達", "nvidia", "gpu", "RTX", " Blackwell", "cuda", "黃仁勳", "Jensen"],
-        TSLA: ["tsla", "特斯拉", "tesla", "elon musk", "馬斯克", "spacex", "全自动驾驶"],
-        AMZN: ["amzn", "亞馬遜", "亞馬遜", "amazon", "aws", "Kindle"],
-        META: ["meta", "facebook", "instagram", "instagram", "whatsapp", "fb", "元宇宙", " Threads"],
-        GOOGL: ["googl", "google", "alphabet", "youtube", "android", "gemini", "deepmind"],
-      };
-
-      const matchesTicker = (title, desc, tickerId) => {
-        const text = `${title} ${desc}`.toLowerCase();
-        const keywords = tickerKeywords[tickerId] ?? [];
-        return keywords.some((kw) => text.includes(kw.toLowerCase()));
-      };
-
-      const parseGoogleRSS = (xmlText) => {
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(xmlText, "text/xml");
-        const items = xml.querySelectorAll("item");
-        const results = [];
-        items.forEach((item) => {
-          const titleEl = item.querySelector("title");
-          const linkEl = item.querySelector("link");
-          const pubEl = item.querySelector("pubDate");
-          const descEl = item.querySelector("description");
-          const title = titleEl?.textContent?.trim() ?? "";
-          let link = linkEl?.textContent?.trim() ?? "";
-          const pubDate = pubEl?.textContent?.trim() ?? "";
-          let desc = descEl?.textContent?.trim() ?? "";
-          if (!title) return;
-          desc = desc.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
-          if (link.startsWith("https://news.google.com/rss/articles/")) {
-            link = link.replace("?oc=5", "");
-          }
-          results.push({ title, url: link, pubDate, desc: desc.slice(0, 120) });
-        });
-        return results;
+        } catch (e) { $("wError").textContent = `天氣載入失敗：${e?.message ?? "未知錯誤"}`; }
       };
 
       const TICKER_KEYWORDS = {
-        AAPL: ["蘋果", "apple", "iphone", "ipad", "ios", "aapl"],
-        MSFT: ["微軟", "microsoft", "msft", "windows", "azure", "copilot"],
-        NVDA: ["輝達", "nvidia", "nvda", "gpu", "黃仁勳", "jensen"],
-        TSLA: ["特斯拉", "tesla", "tsla", "馬斯克", "elon musk", "spacex"],
-        AMZN: ["亞馬遜", "amazon", "amzn", "aws"],
-        META: ["meta", "facebook", "fb", "instagram", "instagram", "whatsapp"],
-        GOOGL: ["google", "alphabet", "googl", "youtube", "gemini"],
+        AAPL: ["蘋果","apple","iphone","ipad","ios","aapl","App","app"],
+        MSFT: ["微軟","microsoft","msft","windows","azure","copilot"],
+        NVDA: ["輝達","nvidia","nvda","gpu","黃仁勳","jensen","NVIDIA"],
+        TSLA: ["特斯拉","tesla","tsla","馬斯克","elon musk","spacex","Tesla"],
+        AMZN: ["亞馬遜","amazon","amzn","aws"],
+        META: ["meta","facebook","fb","instagram","whatsapp"],
+        GOOGL: ["google","alphabet","googl","youtube","gemini","Google"],
       };
+      const MATCHED_LABELS = { AAPL:"蘋果",MSFT:"微軟",NVDA:"輝達",TSLA:"特斯拉",AMZN:"亞馬遜",META:"Meta",GOOGL:"Google" };
 
-      const MATCHED_LABELS = {
-        AAPL: "蘋果", MSFT: "微軟", NVDA: "輝達",
-        TSLA: "特斯拉", AMZN: "亞馬遜", META: "Meta", GOOGL: "Google",
-      };
-
-      const NEWS_SOURCES = [
-        { label: "新浪財經", feeds: ["https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=1686&k=&num=20&page=1&r=0.5"] },
-        { label: "新浪科技", feeds: ["https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2517&k=&num=20&page=1&r=0.5"] },
-        { label: "新浪港股", feeds: ["https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2516&k=&num=20&page=1&r=0.5"] },
+      const NEWS_FEEDS = [
+        { id: "yahoo_hk", label: "Yahoo 香港", url: "https://hk.news.yahoo.com/rss/finance" },
+        { id: "aastocks", label: "阿斯達克", url: "https://www.aastocks.com/tc/stocks/news/rssfeed.aspx?cat=g" },
+        { id: "hket", label: "經濟一週", url: "https://www.hket.com/rss/simplified/finance.xml" },
       ];
 
       const matchesTickers = (title, desc) => {
         const text = `${title} ${desc}`.toLowerCase();
-        return Object.entries(TICKER_KEYWORDS)
-          .filter(([, kws]) => kws.some((kw) => text.includes(kw.toLowerCase())))
-          .map(([id]) => id);
+        return Object.entries(TICKER_KEYWORDS).filter(([, kws]) => kws.some((kw) => text.includes(kw.toLowerCase()))).map(([id]) => id);
       };
 
-      const parseSinaJsonFeed = (data) => {
-        if (!data?.list) return [];
-        return data.list.map((item) => ({
-          title: item.title || "",
-          url: item.url || "",
-          pubDate: item.ctime ? new Date(item.ctime * 1000).toUTCString() : "",
-          desc: item.intro || item.desc || "",
-        })).filter((x) => x.title && x.url);
+      const parseRSS = (xmlText) => {
+        try {
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(xmlText, "text/xml");
+          const items = xml.querySelectorAll("item");
+          const results = [];
+          items.forEach((item) => {
+            const titleEl = item.querySelector("title"), linkEl = item.querySelector("link");
+            const pubEl = item.querySelector("pubDate") || item.querySelector("dc\\:date");
+            const descEl = item.querySelector("description") || item.querySelector("content\\:encoded");
+            const title = titleEl?.textContent?.trim() ?? "";
+            let link = linkEl?.textContent?.trim() ?? "";
+            const pubDate = pubEl?.textContent?.trim() ?? "";
+            let desc = descEl?.textContent?.trim() ?? "";
+            if (!title) return;
+            desc = desc.replace(/<[^>]+>/g,"").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'").trim();
+            if (link.startsWith("https://news.google.com/rss/articles/")) link = link.replace(/\?.*/,"");
+            results.push({ title, url: link, pubDate, desc: desc.slice(0,120) });
+          });
+          return results;
+        } catch { return []; }
       };
 
       const fetchWithTimeout = async (url, ms = 12000) => {
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), ms);
+        const ctrl = new AbortController(), id = setTimeout(() => ctrl.abort(), ms);
+        try { const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" }); clearTimeout(id); return res; }
+        catch (e) { clearTimeout(id); throw e; }
+      };
+
+      const fetchFeed = async (feed) => {
         try {
-          const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
-          clearTimeout(id);
-          return res;
+          const res = await fetchWithTimeout(feed.url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const text = await res.text();
+          if (!text || text.length < 50) throw new Error("空白回應");
+          const items = parseRSS(text);
+          return { feedId: feed.id, label: feed.label, items, ok: items.length > 0 };
         } catch (e) {
-          clearTimeout(id);
-          throw e;
+          return { feedId: feed.id, label: feed.label, items: [], ok: false, error: e?.message };
         }
       };
 
-      const fetchSinaFeed = async (feedUrl) => {
-        const res = await fetchWithTimeout(feedUrl);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        return parseSinaJsonFeed(data);
-      };
-
-      const fetchGN = async (query) => {
-        const q = encodeURIComponent(query);
-        const url = `https://news.google.com/rss/search?q=${q}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant&sortBy=publishedAt`;
-        const res = await fetchWithTimeout(url);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const text = await res.text();
-        if (!text || text.length < 100) throw new Error(`空白回應`);
-        return parseGoogleRSS(text);
+      const renderNewsSourceStatus = () => {
+        const root = $("newsSources");
+        root.innerHTML = "";
+        for (const feed of NEWS_FEEDS) {
+          const status = state.newsSourceStatus[feed.id];
+          const span = document.createElement("span");
+          span.className = `src-pill${status === "ok" ? " ok" : status === "fail" ? " fail" : ""}`;
+          span.textContent = feed.label + (status === "ok" ? " ✓" : status === "fail" ? " ✗" : "");
+          root.appendChild(span);
+        }
       };
 
       const renderNews = () => {
         const root = $("news");
         root.innerHTML = "";
-        if (!state.allNews.length) {
-          root.innerHTML = `<div class="muted">按「更新新聞」載入美股科技股中文新聞</div>`;
-          return;
-        }
+        if (!state.allNews.length) { root.innerHTML = `<div class="muted">按「更新新聞」載入</div>`; return; }
         for (const it of state.allNews.slice(0, 18)) {
-          const a = document.createElement("a");
-          a.href = it.url;
-          a.target = "_blank";
-          a.rel = "noopener noreferrer";
-          const box = document.createElement("div");
-          box.className = "n";
-          const ttl = document.createElement("p");
-          ttl.className = "ttl";
-          ttl.textContent = it.title;
-          const sub = document.createElement("div");
-          sub.className = "sub";
-          const time = document.createElement("span");
-          time.textContent = fmt.pubDate(it.pubDate);
+          const a = document.createElement("a"); a.href = it.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+          const box = document.createElement("div"); box.className = "n";
+          const ttl = document.createElement("p"); ttl.className = "ttl"; ttl.textContent = it.title;
+          const sub = document.createElement("div"); sub.className = "sub";
           const tags = document.createElement("span");
-          const matched = matchesTickers(it.title, it.desc)
-            .map((t) => `<span class="tag">${MATCHED_LABELS[t] ?? t}</span>`)
-            .join("");
-          tags.innerHTML = matched;
-          sub.appendChild(time);
-          if (it.desc) {
-            const descSpan = document.createElement("span");
-            descSpan.textContent = it.desc;
-            sub.appendChild(descSpan);
-          }
-          sub.insertBefore(tags, sub.firstChild);
-          box.appendChild(ttl);
-          box.appendChild(sub);
-          a.appendChild(box);
-          root.appendChild(a);
+          tags.innerHTML = matchesTickers(it.title, it.desc).map((t) => `<span class="tag">${MATCHED_LABELS[t] ?? t}</span>`).join("");
+          const time = document.createElement("span"); time.textContent = fmt.pubDate(it.pubDate);
+          if (it.desc) { const d = document.createElement("span"); d.textContent = it.desc; sub.appendChild(d); }
+          sub.insertBefore(tags, sub.firstChild); sub.appendChild(time);
+          box.appendChild(ttl); box.appendChild(sub); a.appendChild(box); root.appendChild(a);
         }
       };
 
@@ -878,16 +420,11 @@
         for (const tk of tickers) {
           const btn = document.createElement("button");
           btn.className = `ticker-tag${state.activeTickers.has(tk.id) ? " active" : ""}`;
-          btn.textContent = tk.label;
-          btn.type = "button";
+          btn.textContent = tk.label; btn.type = "button";
           btn.addEventListener("click", () => {
-            if (state.activeTickers.has(tk.id)) {
-              state.activeTickers.delete(tk.id);
-            } else {
-              state.activeTickers.add(tk.id);
-            }
-            btn.classList.toggle("active", state.activeTickers.has(tk.id));
-            renderNews();
+            if (state.activeTickers.has(tk.id)) state.activeTickers.delete(tk.id);
+            else state.activeTickers.add(tk.id);
+            btn.classList.toggle("active", state.activeTickers.has(tk.id)); renderNews();
           });
           root.appendChild(btn);
         }
@@ -895,87 +432,59 @@
 
       const loadNews = async () => {
         $("newsError").textContent = "";
-        $("news").innerHTML = `<div class="muted">載入中（新浪財經）…</div>`;
+        $("news").innerHTML = `<div class="muted">載入中（三個來源並行抓取）…</div>`;
+        state.newsSourceStatus = {};
+        renderNewsSourceStatus();
         try {
-          const sinaTasks = NEWS_SOURCES.map((src) =>
-            Promise.allSettled(src.feeds.map((feed) => fetchSinaFeed(feed)))
-              .then((results) => results.flatMap((r) => r.status === "fulfilled" ? r.value : []))
-              .catch(() => [])
-          );
-          const sinaResults = await Promise.race([
-            Promise.all(sinaTasks),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("新浪財經超時（15秒）")), 15000)),
-          ]).catch(() => []);
-
-          let googleResults = [];
-          try {
-            googleResults = await Promise.race([
-              Promise.all(tickers.map((t) => fetchGN(t.query))),
-              new Promise((_, reject) => setTimeout(() => reject(new Error("Google新聞超時")), 15000)),
-            ]).then((batches) => batches.flat()).catch(() => []);
-          } catch {}
-
+          const results = await Promise.race([
+            Promise.all(NEWS_FEEDS.map((f) => fetchFeed(f))),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("全部請求超時（15秒）")), 15000)),
+          ]);
           const uniqByUrl = (arr) => {
             const seen = new Set();
-            return arr.filter((x) => {
-              if (!x.url || seen.has(x.url)) return false;
-              seen.add(x.url);
-              return true;
-            });
+            return arr.filter((x) => { if (!x.url || seen.has(x.url)) return false; seen.add(x.url); return true; });
           };
-          const merged = uniqByUrl([...sinaResults, ...googleResults]).sort((a, b) => {
+          let allItems = [];
+          for (const r of results) {
+            state.newsSourceStatus[r.feedId] = r.ok ? "ok" : "fail";
+            if (r.ok) allItems = allItems.concat(r.items);
+          }
+          renderNewsSourceStatus();
+          const merged = uniqByUrl(allItems).sort((a, b) => {
             const da = a.pubDate ? new Date(a.pubDate) : new Date(0);
             const db = b.pubDate ? new Date(b.pubDate) : new Date(0);
             return db - da;
           });
           state.allNews = merged;
           if (!merged.length) {
-            $("newsError").textContent = "未能取得新聞。請在瀏覽器試開：https://feed.mix.sina.com.cn （若無法打開，代表網絡被封）";
+            const failed = results.filter((r) => !r.ok).map((r) => r.label).join("、");
+            $("newsError").textContent = `全部新聞來源均失敗：${failed || "未知原因"}。請檢查網絡連線。`;
           }
-          renderNews();
-          setUpdatedAtNow();
+          renderNews(); setUpdatedAtNow();
         } catch (e) {
           const isCors = e?.message?.includes("Failed to fetch") || e?.name === "TypeError";
-          $("newsError").textContent = isCors
-            ? `CORS 錯誤`
-            : e?.message?.includes("超時")
-            ? e.message
-            : `新聞載入失敗：${e?.message ?? "未知錯誤"}`;
+          $("newsError").textContent = isCors ? `CORS 錯誤：請確認使用 https 開啟本頁` : e?.message?.includes("超時") ? e.message : `新聞載入失敗：${e?.message ?? "未知錯誤"}`;
           $("news").innerHTML = "";
         }
       };
 
+      const tickers = [
+        { id:"AAPL", label:"蘋果" },
+        { id:"MSFT", label:"微軟" },
+        { id:"NVDA", label:"輝達" },
+        { id:"TSLA", label:"特斯拉" },
+        { id:"AMZN", label:"亞馬遜" },
+        { id:"META", label:"Meta" },
+        { id:"GOOGL", label:"Google" },
+      ];
+
       const init = () => {
-        loadPersisted();
-        renderTodos();
-        setStatus("就緒（未載入）");
-        renderTickerFilters();
-
-        $("todoForm").addEventListener("submit", (e) => {
-          e.preventDefault();
-          const ok = addTodo($("todoInput").value);
-          if (ok) $("todoInput").value = "";
-        });
-
+        loadPersisted(); renderTodos(); setStatus("就緒（未載入）"); renderTickerFilters(); renderNewsSourceStatus();
+        $("todoForm").addEventListener("submit", (e) => { e.preventDefault(); if (addTodo($("todoInput").value)) $("todoInput").value = ""; });
         $("clearDone").addEventListener("click", clearDone);
-
-        $("refreshWeather").addEventListener("click", async () => {
-          $("refreshWeather").disabled = true;
-          setStatus("更新天氣…");
-          await loadWeather();
-          setStatus("就緒");
-          $("refreshWeather").disabled = false;
-        });
-
-        $("refreshNews").addEventListener("click", async () => {
-          $("refreshNews").disabled = true;
-          setStatus("更新新聞…");
-          await loadNews();
-          setStatus("就緒");
-          $("refreshNews").disabled = false;
-        });
+        $("refreshWeather").addEventListener("click", async () => { $("refreshWeather").disabled = true; setStatus("更新天氣…"); await loadWeather(); setStatus("就緒"); $("refreshWeather").disabled = false; });
+        $("refreshNews").addEventListener("click", async () => { $("refreshNews").disabled = true; setStatus("更新新聞…"); await loadNews(); setStatus("就緒"); $("refreshNews").disabled = false; });
       };
-
       init();
     </script>
   </body>
