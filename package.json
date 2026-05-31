@@ -1,0 +1,12 @@
+{
+  "name": "daily-board",
+  "version": "1.0.0",
+  "description": "香港天氣 · To‑Do · 新聞 · 黃金 · 美股",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
