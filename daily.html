@@ -390,9 +390,9 @@
       const MATCHED_LABELS = { AAPL:"蘋果",MSFT:"微軟",NVDA:"輝達",TSLA:"特斯拉",AMZN:"亞馬遜",META:"Meta",GOOGL:"Google" };
 
       const NEWS_FEEDS = [
-        { id: "bbc_cn", label: "BBC 中文", url: "https://feeds.bbci.co.uk/zhongwen/trad/rss.xml", proxy: "https://api.codetabs.com/v1/proxy?quest=" },
-        { id: "bbc_simp", label: "BBC 簡體", url: "https://feeds.bbci.co.uk/zhongwen/simp/rss.xml", proxy: "https://api.codetabs.com/v1/proxy?quest=" },
-        { id: "rfi", label: "法廣", url: "https://www.rfi.fr/tw/rss", proxy: "https://api.codetabs.com/v1/proxy?quest=" },
+        { id: "bbc_cn", label: "BBC 中文", url: "https://feeds.bbci.co.uk/zhongwen/trad/rss.xml" },
+        { id: "bbc_simp", label: "BBC 簡體", url: "https://feeds.bbci.co.uk/zhongwen/simp/rss.xml" },
+        { id: "rfi", label: "法廣", url: "https://www.rfi.fr/tw/rss" },
       ];
 
       const matchesTickers = (title, desc) => {
@@ -431,9 +431,8 @@
 
       const fetchFeed = async (feed) => {
         try {
-          const targetUrl = feed.proxy ? feed.proxy + encodeURIComponent(feed.url) : feed.url;
-          const res = await fetchWithTimeout(targetUrl);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const res = await proxyFetch(feed.url);
+          if (!res?.ok) throw new Error("代理請求失敗");
           const text = await res.text();
           if (!text || text.length < 50) throw new Error("空白回應");
           const items = parseRSS(text);

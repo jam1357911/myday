@@ -40,12 +40,27 @@ while ($true) {
         if ($path -match "^/api/proxy\?url=(.+)$") {
             $target = [System.Uri]::UnescapeDataString($matches[1])
             if ($target) {
-                $wc = New-Object System.Net.WebClient
-                $wc.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                $wc.Headers.Add("Accept", "application/json")
-                $result = $wc.DownloadString($target)
-                $body = [System.Text.Encoding]::UTF8.GetBytes($result)
-                $contentType = "application/json; charset=utf-8"
+                $req = [System.Net.HttpWebRequest]::Create($target)
+                $req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                $req.Accept = "*/*"
+                $req.Headers.Add("Accept-Encoding", "identity")
+                $req.Timeout = 15000
+                $req.ReadWriteTimeout = 15000
+
+                $resp = $req.GetResponse()
+                try {
+                    $contentType = $resp.ContentType
+                    $rs = $resp.GetResponseStream()
+                    try {
+                        $ms = New-Object System.IO.MemoryStream
+                        $rs.CopyTo($ms)
+                        $body = $ms.ToArray()
+                    } finally {
+                        try { $rs.Close() } catch {}
+                    }
+                } finally {
+                    try { $resp.Close() } catch {}
+                }
                 Write-Host "  [OK] $($target.Substring(0, [Math]::Min(55, $target.Length)))..." -ForegroundColor DarkGreen
             } else {
                 $status = "400 Bad Request"

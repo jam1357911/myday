@@ -2,6 +2,7 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 
 const PORT = process.env.PORT || 8080;
 const ROOT = __dirname;
@@ -16,17 +17,60 @@ const MIME = {
   ".ico": "image/x-icon",
 };
 
-function proxyRequest(targetUrl) {
+function proxyRequest(targetUrl, redirectsLeft = 3) {
   return new Promise((resolve, reject) => {
     const client = targetUrl.startsWith("https") ? https : http;
-    client.get(targetUrl, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", "Accept": "application/json" } }, (res) => {
-      let data = "";
-      res.on("data", (chunk) => (data += chunk));
-      res.on("end", () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) resolve(data);
-        else reject(new Error(`HTTP ${res.statusCode}: ${data.slice(0, 100)}`));
-      });
-    }).on("error", reject);
+    const req = client.get(
+      targetUrl,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          Accept: "*/*",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Accept-Language": "zh-HK,zh;q=0.9,en-US;q=0.7,en;q=0.6",
+        },
+        timeout: 15000,
+      },
+      (res) => {
+        const status = res.statusCode || 0;
+
+        if ([301, 302, 303, 307, 308].includes(status) && res.headers.location && redirectsLeft > 0) {
+          const nextUrl = new URL(res.headers.location, targetUrl).toString();
+          res.resume();
+          resolve(proxyRequest(nextUrl, redirectsLeft - 1));
+          return;
+        }
+
+        const encoding = String(res.headers["content-encoding"] || "").toLowerCase();
+        let stream = res;
+        if (encoding.includes("br")) stream = res.pipe(zlib.createBrotliDecompress());
+        else if (encoding.includes("gzip")) stream = res.pipe(zlib.createGunzip());
+        else if (encoding.includes("deflate")) stream = res.pipe(zlib.createInflate());
+
+        const chunks = [];
+        let total = 0;
+        stream.on("data", (chunk) => {
+          chunks.push(chunk);
+          total += chunk.length;
+          if (total > 8 * 1024 * 1024) req.destroy(new Error("response too large"));
+        });
+
+        stream.on("end", () => {
+          const body = Buffer.concat(chunks);
+          if (status >= 200 && status < 300) {
+            const contentType = res.headers["content-type"];
+            resolve({ body, contentType });
+          } else {
+            reject(new Error(`HTTP ${status}: ${body.toString("utf8", 0, 200)}`));
+          }
+        });
+
+        stream.on("error", reject);
+      }
+    );
+
+    req.on("timeout", () => req.destroy(new Error("timeout")));
+    req.on("error", reject);
   });
 }
 
@@ -44,8 +88,8 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       const result = await proxyRequest(target);
-      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-      res.end(result);
+      res.writeHead(200, { "Content-Type": result?.contentType || "application/octet-stream", "Cache-Control": "no-store" });
+      res.end(result.body);
       console.log(`  [OK] ${target.slice(0, 55)}...`);
       return;
     }
